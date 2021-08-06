@@ -128,6 +128,7 @@ class BoxRecognizer:
 
 					if current_rating >= 70:
 						rating += current_rating
+						print(f'{config_word} - {word} - {current_rating}')
 
 			if rating > max_rating[1]:
 				max_rating = [key, rating]
