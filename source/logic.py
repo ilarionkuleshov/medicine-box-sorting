@@ -14,16 +14,30 @@ class Camera:
 		self.capture = cv2.VideoCapture(index)
 		self.capture.set(28, focus_value)
 
-		self.first_frame = cv2.cvtColor(self.get_frame(), cv2.COLOR_BGR2GRAY)
+		self.frame_cropper = FrameCropper()
+
+		self.update_key_frame()
 
 	def get_frame(self):
 		return self.capture.read()[1]
 
 	def get_cropped_frame(self):
 		frame = self.get_frame()
+		return self.frame_cropper.get_difference(self.key_frame, frame)
+
+	def update_key_frame(self):
+		self.key_frame = cv2.cvtColor(self.get_frame(), cv2.COLOR_BGR2GRAY)
+
+
+class FrameCropper:
+
+	def __init__(self):
+		pass
+
+	def get_difference(self, key_frame, frame):
 		gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-		difference = structural_similarity(self.first_frame, gray_frame, full=True)[1]
+		difference = structural_similarity(key_frame, gray_frame, full=True)[1]
 		difference = (difference * 255).astype('uint8')
 		threshold = cv2.threshold(difference, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 		contours = cv2.findContours(threshold, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[0]
