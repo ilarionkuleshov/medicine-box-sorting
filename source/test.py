@@ -1,4 +1,4 @@
-# Run script: sudo ./venv/bin/python test.py
+# Run script: sudo ../venv/bin/python test.py
 
 import cv2
 
@@ -14,8 +14,8 @@ camera_2 = Camera(cam_indxs[1], 20)
 camera_3 = Camera(cam_indxs[2], 30)
 
 transporter_cntrl = TransporterControl('/dev/ttyUSB0')
-text_dtctr = TextDetector(r'token.json')
-box_rcgnzr = BoxRecognizer('boxes.json')
+text_dtctr = TextDetector(r'extra-files/token.json')
+box_rcgnzr = BoxRecognizer('extra-files/boxes.json')
 
 while True:
 	if transporter_cntrl.get_state():
@@ -42,7 +42,13 @@ while True:
 		cv2.imshow('Live 3', frame_3)
 
 	key = cv2.waitKey(1)
+
 	if key == ord('q'):
 		break
+
+	elif key == ord('k'):
+		camera_1.update_key_frame()
+		camera_2.update_key_frame()
+		camera_3.update_key_frame()
 
 transporter_cntrl.stop()
