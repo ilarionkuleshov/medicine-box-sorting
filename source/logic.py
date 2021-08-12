@@ -43,7 +43,7 @@ class Camera:
 
 	def get_cropped_frame(self):
 		frame = self.get_frame()
-		return self.frame_cropper.get_difference(self.key_frame, frame)
+		return self.frame_cropper.get_cropped(self.key_frame, frame)
 
 	def update_key_frame(self):
 		self.key_frame = cv2.cvtColor(self.get_frame(), cv2.COLOR_BGR2GRAY)
@@ -57,18 +57,34 @@ class FrameCropper:
 	def __init__(self):
 		pass
 
-	def get_difference(self, key_frame, frame):
+	def get_cropped(self, key_frame, frame):
+		#return self.skimage_processing(key_frame, frame)
+		return self.opencv_processing(key_frame, frame)
+
+	def skimage_processing(self, key_frame, frame):
 		gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 		difference = structural_similarity(key_frame, gray_frame, full=True)[1]
 		difference = (difference * 255).astype('uint8')
 		threshold = cv2.threshold(difference, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-		contours = cv2.findContours(threshold, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[0]
-		x, y, w, h = self.contour_size_sorting(contours)
+		contours = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+		x, y, w, h = self.get_max_contour(contours)
 
 		return frame[y:y+h, x:x+w]
 
-	def contour_size_sorting(self, contours):
+	def opencv_processing(self, key_frame, frame):
+		new_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+		new_frame = cv2.GaussianBlur(new_frame, (21, 21), 0)
+
+		delta = cv2.absdiff(key_frame, new_frame)
+		threshold = cv2.threshold(delta, 25, 255, cv2.THRESH_BINARY)[1]
+		threshold = cv2.dilate(threshold, None, iterations=2)
+		contours = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+		x, y, w, h = self.get_max_contour(contours)
+
+		return frame[y:y+h, x:x+w]
+
+	def get_max_contour(self, contours):
 		max_contour = [0, 0, 0, 0]
 
 		for c in contours:
