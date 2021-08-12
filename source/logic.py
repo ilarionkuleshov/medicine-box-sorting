@@ -8,6 +8,22 @@ from google.cloud import vision
 from fuzzywuzzy import fuzz
 
 
+class ExceptionPrinter:
+
+	def __init__(self):
+		self.prev_exception = None
+
+	def print(self, exception):
+		exception = str(exception)
+
+		if exception != self.prev_exception:
+			print(exception)
+			self.prev_exception = exception
+
+
+ex_printer = ExceptionPrinter()
+
+
 class Camera:
 
 	def __init__(self, index, focus_value):
@@ -31,6 +47,9 @@ class Camera:
 
 	def update_key_frame(self):
 		self.key_frame = cv2.cvtColor(self.get_frame(), cv2.COLOR_BGR2GRAY)
+
+	def stop(self):
+		self.capture.release()
 
 
 class FrameCropper:
@@ -67,7 +86,8 @@ class FrameCropper:
 class TransporterControl:
 
 	def __init__(self, port_name):
-		self.port = serial.Serial(port=port_name)
+		self.port_name = port_name
+		self.open_port()
 
 		self.is_thread = True
 		self.thread = threading.Thread(target=self.update)
@@ -80,13 +100,24 @@ class TransporterControl:
 
 		self.thread.start()
 
+	def open_port(self):
+		try:
+			self.port = serial.Serial(port=self.port_name)
+		except Exception as e:
+			ex_printer.print(e)
+			self.port = None
+
 	def update(self):
 		while self.is_thread:
-			current_msg = self.port.readline()
+			try:
+				current_msg = self.port.readline()
 
-			if current_msg == self.responses[0]:
-				time.sleep(1)
-				self.is_ready = True
+				if current_msg == self.responses[0]:
+					time.sleep(1)
+					self.is_ready = True
+			except Exception as e:
+				ex_printer.print(e)
+				self.is_ready = False
 
 	def get_state(self):
 		if self.is_ready:

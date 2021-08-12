@@ -11,9 +11,10 @@ camera_1 = Camera(cam_indxs[0], 20)
 camera_2 = Camera(cam_indxs[1], 20)
 camera_3 = Camera(cam_indxs[2], 30)
 
-transporter_cntrl = TransporterControl('/dev/ttyUSB0')
+transporter_cntrl = TransporterControl('/dev/ttyUSB1')
 text_dtctr = TextDetector(r'extra-files/token.json')
 box_rcgnzr = BoxRecognizer('extra-files/boxes.json')
+
 
 while True:
 	if transporter_cntrl.get_state():
@@ -42,11 +43,23 @@ while True:
 	key = cv2.waitKey(1)
 
 	if key == ord('q'):
+		print('|INFO| Stopping the program...')
 		break
 
 	elif key == ord('k'):
+		print('|INFO| Updating key frame...')
 		camera_1.update_key_frame()
 		camera_2.update_key_frame()
 		camera_3.update_key_frame()
+
+	elif key == ord('o'):
+		print('|INFO| Opening serial port...')
+		transporter_cntrl.open_port()
+
+
+camera_1.stop()
+camera_2.stop()
+camera_3.stop()
+cv2.destroyAllWindows()
 
 transporter_cntrl.stop()
