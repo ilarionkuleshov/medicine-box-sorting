@@ -7,8 +7,6 @@ from logic import *
 
 cam_indxs = [0, 2, 4]
 
-setup_cameras(cam_indxs)
-
 camera_1 = Camera(cam_indxs[0], 20)
 camera_2 = Camera(cam_indxs[1], 20)
 camera_3 = Camera(cam_indxs[2], 30)

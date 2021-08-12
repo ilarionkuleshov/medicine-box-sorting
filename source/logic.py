@@ -11,6 +11,10 @@ from fuzzywuzzy import fuzz
 class Camera:
 
 	def __init__(self, index, focus_value):
+		os.system(f'v4l2-ctl -d /dev/video{index} --set-ctrl=focus_auto=0')
+		os.system(f'v4l2-ctl -d /dev/video{index} --set-ctrl=exposure_auto=1')
+		time.sleep(2)
+
 		self.capture = cv2.VideoCapture(index)
 		self.capture.set(28, focus_value)
 
@@ -148,9 +152,3 @@ class BoxRecognizer:
 				max_rating = [key, rating]
 
 		return max_rating[0]
-
-
-def setup_cameras(indexes):
-	for i in indexes:
-		os.system(f'v4l2-ctl -d /dev/video{i} --set-ctrl=focus_auto=0')
-		os.system(f'v4l2-ctl -d /dev/video{i} --set-ctrl=exposure_auto=1')
