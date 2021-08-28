@@ -1,3 +1,5 @@
+# Файл logic.py содержит основную логику программы
+
 import threading, time, os, json
 
 import cv2
@@ -8,6 +10,7 @@ from google.cloud import vision
 from fuzzywuzzy import fuzz
 
 
+# Вспомогательный класс для отображения исключений
 class ExceptionPrinter:
 
 	def __init__(self):
@@ -24,6 +27,7 @@ class ExceptionPrinter:
 ex_printer = ExceptionPrinter()
 
 
+# Класс для получения кадров с веб-камеры
 class Camera:
 
 	def __init__(self, index, focus_value):
@@ -52,14 +56,19 @@ class Camera:
 		self.capture.release()
 
 
+# Класс для детектирования коробочки в кадре, и обрезки этого кадра
+# Сейчас реализованы два лучших метода детектирования коробочки:
+#   - с помощью библиотеки skimage;
+#   - с помощью библиотеки opencv.
+# Были попытки реализовать это с помощью других алгоритмов, но точность была ниже, нежели при использовании этих алгоритмов
+# Лучшая точность сейчас получается с библиотекой skimage
 class FrameCropper:
 
 	def __init__(self):
 		pass
 
 	def get_cropped(self, key_frame, frame):
-		#return self.skimage_processing(key_frame, frame)
-		return self.opencv_processing(key_frame, frame)
+		return self.skimage_processing(key_frame, frame) # сейчас используются алгоритмы библиотеки skimage
 
 	def skimage_processing(self, key_frame, frame):
 		gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -99,6 +108,7 @@ class FrameCropper:
 		return max_contour
 
 
+# Класс для управления Транспортером при помощи сериал порта
 class TransporterControl:
 
 	def __init__(self, port_name):
@@ -147,6 +157,7 @@ class TransporterControl:
 		self.thread.join()
 
 
+# Класс для детектирования текста на коробочке с помощью сервисов Google
 class TextDetector:
 
 	def __init__(self, token):
@@ -175,6 +186,8 @@ class TextDetector:
 		return combined_text
 
 
+# Класс для распознавания типа лекарства
+# В файле extra-files/boxes.json записаны ключевые слова для лекарств
 class BoxRecognizer:
 
 	def __init__(self, config_file):
@@ -193,7 +206,7 @@ class BoxRecognizer:
 
 					if current_rating >= 70:
 						rating += current_rating
-						print(f'{config_word} - {word} - {current_rating}')
+						#print(f'{config_word} - {word} - {current_rating}')
 
 			if rating > max_rating[1]:
 				max_rating = [key, rating]
